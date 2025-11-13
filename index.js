@@ -44,11 +44,13 @@ const handleRequest = async (operation, params, token) => {
       );
     }
     
-    console.log(`[${new Date().toISOString()}] Executing operation: ${operation}`, params);
+    // Sanitize operation name for logging to prevent format string issues
+    const sanitizedOp = String(operation).replace(/[^\w-]/g, '_').substring(0, 100);
+    console.log(`[${new Date().toISOString()}] Executing operation:`, sanitizedOp);
     
     const result = await handler(octokit, params || {});
     
-    console.log(`[${new Date().toISOString()}] Operation ${operation} completed successfully`);
+    console.log(`[${new Date().toISOString()}] Operation completed successfully:`, sanitizedOp);
     
     return {
       success: true,
@@ -56,7 +58,9 @@ const handleRequest = async (operation, params, token) => {
       data: result
     };
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error in operation ${operation}:`, error.message);
+    // Sanitize operation name for logging
+    const sanitizedOp = String(operation).replace(/[^\w-]/g, '_').substring(0, 100);
+    console.error(`[${new Date().toISOString()}] Error in operation:`, sanitizedOp, error.message);
     
     return {
       success: false,
