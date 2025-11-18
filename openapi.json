@@ -1,0 +1,264 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "GitHub Operations API",
+    "version": "1.0.0",
+    "description": "GitHub integration for Monica AI with comprehensive GitHub operations support",
+    "contact": {
+      "name": "GitHub Monica Skill",
+      "url": "https://github.com/UniversalStandards/github-monica-skill"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://github-monica-skill.vercel.app",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Health check",
+        "operationId": "healthCheck",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    },
+                    "service": {
+                      "type": "string",
+                      "example": "GitHub Monica Skill"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/operations": {
+      "get": {
+        "summary": "List available operations",
+        "operationId": "listOperations",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "List of available operations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "operations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/execute": {
+      "post": {
+        "summary": "Execute a GitHub operation",
+        "operationId": "executeOperation",
+        "tags": ["Operations"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["operation"],
+                "properties": {
+                  "operation": {
+                    "type": "string",
+                    "description": "Name of the GitHub operation to execute",
+                    "example": "listRepos"
+                  },
+                  "params": {
+                    "type": "object",
+                    "description": "Parameters for the operation",
+                    "example": {
+                      "type": "all",
+                      "sort": "updated"
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "listRepos": {
+                  "summary": "List repositories",
+                  "value": {
+                    "operation": "listRepos",
+                    "params": {
+                      "type": "all",
+                      "sort": "updated"
+                    }
+                  }
+                },
+                "createIssue": {
+                  "summary": "Create an issue",
+                  "value": {
+                    "operation": "createIssue",
+                    "params": {
+                      "owner": "username",
+                      "repo": "repository",
+                      "title": "Bug Report",
+                      "body": "Description of the bug"
+                    }
+                  }
+                },
+                "getFile": {
+                  "summary": "Get file content",
+                  "value": {
+                    "operation": "getFile",
+                    "params": {
+                      "owner": "microsoft",
+                      "repo": "vscode",
+                      "path": "README.md"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation executed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "operation": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Result data from the operation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing or invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "GitHub Personal Access Token",
+        "description": "GitHub Personal Access Token for authentication"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "System",
+      "description": "System endpoints for health checks and operation listing"
+    },
+    {
+      "name": "Operations",
+      "description": "GitHub operation execution endpoints"
+    }
+  ]
+}
